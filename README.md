@@ -4,6 +4,8 @@ Skill do Claude Code / Cowork para manter um **LLM Wiki** — base de conhecimen
 
 Este repositório é **apenas a ferramenta**. O wiki em si (conteúdo: `CLAUDE.md`, `raw/`, `wiki/`, `index.md`, `log.md`) vive num outro repositório apontado pela variável de ambiente `$LLM_WIKI`.
 
+> **Créditos.** A ideia do LLM Wiki é de **Andrej Karpathy**, descrita originalmente no gist [karpathy/442a6bf555914893e9891c11519de94f](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) — "uma pattern, não um produto": usar o LLM como compilador que lê fontes brutas e mantém uma base de conhecimento markdown interligada, em alternativa a RAG/embeddings na escala de uma base pessoal. Este repo é uma **implementação concreta** do pattern, opinativa em PT-BR, com schema fixo (`type`, `categoria`, `event_5w1h`), scripts pra session-digest e import, e um slash command pra bootstrap. Ver também [§Referências](#referências).
+
 ## Arquitetura
 
 Dois repos separados por responsabilidade:
@@ -146,3 +148,10 @@ Ver `reference/troubleshooting.md`. Sintomas mais comuns:
 ## Distribuição futura (time)
 
 Hoje é setup individual (clone + symlink). Pra distribuir pro time, o próximo passo é empacotar como **Claude Code plugin** — um bundle com skill + commands + settings que qualquer pessoa instala via marketplace. Deferido até a skill estabilizar em uso real.
+
+## Referências
+
+- **Andrej Karpathy, "llm-wiki" gist** — [gist.github.com/karpathy/442a6bf555914893e9891c11519de94f](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f). Descrição original do pattern: base de conhecimento markdown mantida por LLM, alternativa a RAG pra escala pessoal. Arquitetura de 3 camadas (raw / wiki / schema), operações `ingest` / `query` / `lint`. Esta skill implementa essas ideias com opiniões concretas (PT-BR, schema fixo, scripts de session-digest/import/bootstrap).
+- **MindStudio — "What Is Andrej Karpathy's LLM Wiki?"** — [mindstudio.ai/blog/andrej-karpathy-llm-wiki-knowledge-base-claude-code](https://www.mindstudio.ai/blog/andrej-karpathy-llm-wiki-knowledge-base-claude-code). Walkthrough explicativo do pattern.
+- **VentureBeat — "Karpathy shares 'LLM Knowledge Base' architecture that bypasses RAG"** — [venturebeat.com/data/karpathy-shares-llm-knowledge-base-architecture-that-bypasses-rag-with-an](https://venturebeat.com/data/karpathy-shares-llm-knowledge-base-architecture-that-bypasses-rag-with-an). Cobertura da ideia e contraste explícito com RAG.
+- **DAIR.AI Academy — "LLM Knowledge Bases"** — [academy.dair.ai/blog/llm-knowledge-bases-karpathy](https://academy.dair.ai/blog/llm-knowledge-bases-karpathy). Análise pedagógica do conceito.
