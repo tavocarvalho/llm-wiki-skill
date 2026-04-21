@@ -2,6 +2,8 @@
 
 Base de conhecimento pessoal/profissional em markdown interligado (wikilinks estilo Obsidian), mantida colaborativamente entre você (curador) e um agente LLM (maintainer).
 
+> **Origem do conceito.** A ideia do LLM Wiki é de **Andrej Karpathy**, descrita no gist [karpathy/442a6bf555914893e9891c11519de94f](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) — usar o LLM como compilador que lê fontes brutas e mantém uma base de conhecimento markdown interligada, em alternativa a RAG/embeddings na escala pessoal. Este scaffold implementa o pattern concretamente em PT-BR, com schema fixo.
+
 ## O que é
 
 - **Páginas pequenas e focadas** (uma página = um conceito/entidade) ligadas por `[[wikilinks]]`.
