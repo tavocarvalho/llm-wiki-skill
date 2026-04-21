@@ -10,8 +10,10 @@ Dois repos separados por responsabilidade:
 
 | Repo                          | Papel                  | Conteúdo                                           |
 |-------------------------------|------------------------|----------------------------------------------------|
-| `llm-wiki` (privado)          | **conteúdo**           | `CLAUDE.md`, `raw/`, `wiki/`, `index.md`, `log.md` |
+| `llm-wiki` (seu, privado)     | **conteúdo**           | `CLAUDE.md`, `raw/`, `wiki/`, `index.md`, `log.md` |
 | `llm-wiki-skill` (este repo)  | **ferramenta**         | `SKILL.md`, `commands/`, `scripts/`, `reference/`  |
+
+**Novo wiki?** Use `/wiki-init` (ou `scripts/wiki-init`) pra criar o scaffold canônico do `llm-wiki` a partir dos templates genéricos em `reference/bootstrap/`.
 
 A skill nunca assume que os scripts estão em `$LLM_WIKI/scripts/` — ela sempre invoca via path absoluto `$HOME/.claude/skills/llm-wiki/scripts/<script>`. A única informação que a skill precisa do wiki em runtime é o valor de `$LLM_WIKI`.
 
@@ -25,11 +27,19 @@ llm-wiki-skill/
 │   ├── schema.md          # frontmatter completo, vocabulários, estruturas por tipo
 │   ├── workflows.md       # passo-a-passo dos 5 workflows
 │   ├── templates.md       # templates copy-pastable
-│   └── troubleshooting.md # problemas comuns
+│   ├── troubleshooting.md # problemas comuns
+│   └── bootstrap/         # templates canônicos pra inicializar wiki novo
+│       ├── CLAUDE.md      # schema genérico (categorias genéricas, PT-BR)
+│       ├── AGENTS.md      # espelho do CLAUDE.md
+│       ├── README.md      # orientação humana
+│       ├── index.md       # catálogo vazio
+│       └── log.md         # log vazio
 ├── scripts/
+│   ├── wiki-init          # inicializa scaffold de wiki novo
 │   ├── wiki-dump          # gera esqueleto de session digest
 │   └── wiki-import        # importa .md externo pra raw/sources/
 ├── commands/
+│   ├── wiki-init.md       # slash command /wiki-init
 │   ├── wiki-dump.md       # slash command /wiki-dump
 │   ├── wiki-import.md     # slash command /wiki-import
 │   └── wiki-ingest-session.md   # slash command /wiki-ingest-session
@@ -66,6 +76,7 @@ ln -sfn "$HOME/projetos/llm-wiki-skill" ~/.claude/skills/llm-wiki
 
 # Slash commands (um por arquivo)
 mkdir -p ~/.claude/commands
+ln -sf "$HOME/.claude/skills/llm-wiki/commands/wiki-init.md"           ~/.claude/commands/wiki-init.md
 ln -sf "$HOME/.claude/skills/llm-wiki/commands/wiki-dump.md"           ~/.claude/commands/wiki-dump.md
 ln -sf "$HOME/.claude/skills/llm-wiki/commands/wiki-import.md"         ~/.claude/commands/wiki-import.md
 ln -sf "$HOME/.claude/skills/llm-wiki/commands/wiki-ingest-session.md" ~/.claude/commands/wiki-ingest-session.md
@@ -77,7 +88,19 @@ Verifique:
 ls -la ~/.claude/skills/llm-wiki ~/.claude/commands/wiki-*
 ```
 
-Deve mostrar os 4 symlinks apontando pro repo. Reinicie o Claude Code (feche e reabra a sessão — commands são carregados no startup). Digite `/wiki-` e o autocomplete deve listar os três.
+Deve mostrar os 5 symlinks apontando pro repo. Reinicie o Claude Code (feche e reabra a sessão — commands são carregados no startup). Digite `/wiki-` e o autocomplete deve listar os quatro.
+
+### 4. Inicializar o wiki (só na primeira vez)
+
+Se `$LLM_WIKI` aponta pra uma pasta vazia (ou inexistente), rode:
+
+```bash
+/wiki-init
+```
+
+Cria `CLAUDE.md`, `AGENTS.md`, `README.md`, `index.md`, `log.md` + estrutura de diretórios (`raw/sources/`, `raw/assets/sessions/`, `wiki/{entities,concepts,sources,projects,synthesis,queries}/`) a partir dos templates em `reference/bootstrap/`. Depois disso, revise o `CLAUDE.md` e ajuste as categorias se quiser.
+
+Se `$LLM_WIKI` já tem um wiki populado, **pule este passo** — `/wiki-init` se recusa a sobrescrever sem `--force`.
 
 ### (opcional) Rodar scripts direto do shell
 

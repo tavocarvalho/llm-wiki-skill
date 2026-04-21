@@ -37,9 +37,12 @@ Guarde o path como `WIKI_ROOT` para o resto da conversa.
 
 Motivo: o schema evolui no repo (o humano atualiza o `CLAUDE.md` quando regras mudam); a skill pode ficar defasada. O contrato é: a skill te traz até a porta, o `CLAUDE.md` diz como se comportar dentro.
 
-Se o `CLAUDE.md` não existir no `WIKI_ROOT`, algo está errado — alerte o usuário e pare. Não tente adivinhar o schema.
+Se o `CLAUDE.md` não existir no `WIKI_ROOT`, o wiki ainda não foi inicializado. Pergunte se é isso mesmo — se sim, ofereça rodar `/wiki-init` (ou invoque `scripts/wiki-init` diretamente via Bash) que cria o scaffold a partir dos templates em `reference/bootstrap/`. Se o usuário esperava ter um wiki já populado, pare e ajude a diagnosticar (`$LLM_WIKI` apontando pra pasta errada, wiki em outro path, etc.). **Nunca adivinhe o schema** — sempre use os templates canônicos.
 
-## As 5 operações
+## As 5 operações (+ bootstrap)
+
+> **Bootstrap (uma vez):** se `$LLM_WIKI` aponta pra pasta vazia ou sem `CLAUDE.md`, rode `/wiki-init` (ou invoque `scripts/wiki-init` via Bash). Cria scaffold canônico a partir de `reference/bootstrap/`. Não é uma das 5 operações — é pré-requisito antes de ingest/query/lint/session-dump/import funcionarem.
+
 
 Cada operação tem workflow próprio. Resumos abaixo; detalhe completo em `reference/workflows.md` — leia esse arquivo antes de executar se a operação envolver mais de uma ou duas páginas, ou se você não se lembra de um detalhe.
 
@@ -133,6 +136,7 @@ Estes erros derrubam a qualidade do wiki — evite ativamente:
 
 Vivem **dentro desta skill**, em `~/.claude/skills/llm-wiki/scripts/` (não no repo do wiki):
 
+- **`wiki-init`** — inicializa scaffold de wiki novo (CLAUDE.md, AGENTS.md, README.md, index.md, log.md + estrutura de diretórios) copiando os templates de `reference/bootstrap/`. Flags: `--force`. Rode uma vez na instalação.
 - **`wiki-dump`** — gera esqueleto de session digest em `$LLM_WIKI/raw/sources/`. Flags: `--no-edit`, `--categoria <cat>`, `--transcript <path>`.
 - **`wiki-import`** — copia/move markdown externo pra `$LLM_WIKI/raw/sources/` com frontmatter básico. Flags: `--categoria <cat>`, `--move`, `--no-date-prefix`.
 
@@ -140,7 +144,7 @@ Ambos exigem `$LLM_WIKI` exportado (pra saber onde escrever). Se não estiver, o
 
 Invoque sempre pelo path absoluto `$HOME/.claude/skills/llm-wiki/scripts/<script>` — **não** dependa dos scripts estarem no `$PATH`.
 
-Slash commands equivalentes (`/wiki-dump`, `/wiki-import`, `/wiki-ingest-session`) vivem em `commands/` dentro desta skill; o usuário instala criando symlinks em `~/.claude/commands/` (ver README da skill).
+Slash commands equivalentes (`/wiki-init`, `/wiki-dump`, `/wiki-import`, `/wiki-ingest-session`) vivem em `commands/` dentro desta skill; o usuário instala criando symlinks em `~/.claude/commands/` (ver README da skill).
 
 ## Quando recorrer a `reference/`
 

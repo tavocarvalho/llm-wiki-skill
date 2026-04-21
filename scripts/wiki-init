@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+# wiki-init — inicializa um LLM Wiki novo a partir dos templates bootstrap.
+#
+# Uso:
+#   wiki-init [--force]
+#
+# Espera LLM_WIKI exportado apontando pra pasta destino (existente ou nao).
+# Cria a estrutura canonica (CLAUDE.md, AGENTS.md, README.md, index.md, log.md,
+# raw/sources/, raw/assets/sessions/, wiki/{entities,concepts,sources,projects,
+# synthesis,queries}/) copiando os templates de
+# ~/.claude/skills/llm-wiki/reference/bootstrap/.
+#
+# Por seguranca, se CLAUDE.md ou AGENTS.md ja existirem no destino, o script
+# aborta — use --force pra sobrescrever (destrutivo).
+#
+# Ex:
+#   export LLM_WIKI="$HOME/projetos/meu-wiki"
+#   wiki-init
+#
+# Vars de ambiente:
+#   LLM_WIKI — caminho do wiki (obrigatorio)
+#
+# Este script vive dentro da skill: ~/.claude/skills/llm-wiki/scripts/wiki-init.
+
+set -euo pipefail
+
+# --- parsing ------------------------------------------------------------------
+FORCE=0
+
+usage() {
+  sed -n '2,22p' "$0" | sed 's/^# \{0,1\}//'
+  exit 2
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage ;;
+    --force)   FORCE=1; shift ;;
+    *) echo "opção desconhecida: $1" >&2; usage ;;
+  esac
+done
+
+# --- contexto -----------------------------------------------------------------
+WIKI="${LLM_WIKI:-}"
+if [[ -z "$WIKI" ]]; then
+  echo "ERRO: LLM_WIKI nao esta exportado." >&2
+  echo "   Defina antes de rodar: export LLM_WIKI=\"\$HOME/caminho/do/wiki\"" >&2
+  exit 3
+fi
+
+# Descobrir onde a skill vive (bootstrap templates estao em reference/bootstrap/).
+# Resolve symlinks pra achar o repo fonte mesmo se a skill foi symlinkada.
+SCRIPT_PATH="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
+if [[ -L "$SCRIPT_PATH" ]]; then
+  # readlink -f nao existe em todo macOS; usamos Python como fallback portavel.
+  SCRIPT_PATH="$(python3 -c "import os,sys; print(os.path.realpath(sys.argv[1]))" "$SCRIPT_PATH" 2>/dev/null || echo "$SCRIPT_PATH")"
+fi
+SKILL_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
+BOOTSTRAP="$SKILL_ROOT/reference/bootstrap"
+
+if [[ ! -d "$BOOTSTRAP" ]]; then
+  echo "ERRO: pasta bootstrap nao encontrada: $BOOTSTRAP" >&2
+  echo "   A skill llm-wiki-skill parece estar corrompida ou incompleta." >&2
+  exit 4
+fi
+
+# --- checagens de seguranca ---------------------------------------------------
+if [[ -e "$WIKI/CLAUDE.md" || -e "$WIKI/AGENTS.md" ]]; then
+  if [[ "$FORCE" -ne 1 ]]; then
+    echo "ERRO: $WIKI ja contem CLAUDE.md ou AGENTS.md." >&2
+    echo "   Aborta pra nao sobrescrever. Use --force se quer mesmo reescrever." >&2
+    exit 5
+  fi
+  echo "# AVISO: --force ativo, vai sobrescrever arquivos existentes" >&2
+fi
+
+# --- cria estrutura -----------------------------------------------------------
+mkdir -p "$WIKI"
+mkdir -p "$WIKI/raw/sources"
+mkdir -p "$WIKI/raw/assets/sessions"
+mkdir -p "$WIKI/wiki/entities"
+mkdir -p "$WIKI/wiki/concepts"
+mkdir -p "$WIKI/wiki/sources"
+mkdir -p "$WIKI/wiki/projects"
+mkdir -p "$WIKI/wiki/synthesis"
+mkdir -p "$WIKI/wiki/queries"
+
+# --- copia templates ----------------------------------------------------------
+DATE="$(date +%F)"
+COPIED=()
+
+for file in CLAUDE.md AGENTS.md README.md index.md log.md; do
+  src="$BOOTSTRAP/$file"
+  dst="$WIKI/$file"
+  if [[ ! -f "$src" ]]; then
+    echo "# AVISO: template nao encontrado: $src (pulando)" >&2
+    continue
+  fi
+  # substitui placeholder "(data de criacao)" e "(vazio — wiki recém-criado)"
+  # mantendo o resto intacto
+  sed "s/(data de criação)/${DATE}/g; s/(data de criacao)/${DATE}/g" "$src" > "$dst"
+  COPIED+=("$file")
+done
+
+# --- reporta ------------------------------------------------------------------
+echo "# LLM Wiki inicializado em: $WIKI" >&2
+echo "# arquivos criados: ${COPIED[*]}" >&2
+echo "# diretorios criados: raw/{sources,assets/sessions}, wiki/{entities,concepts,sources,projects,synthesis,queries}" >&2
+echo "" >&2
+echo "# proximos passos:" >&2
+echo "#   1. abra $WIKI/CLAUDE.md e revise/ajuste as categorias (secao 3)" >&2
+echo "#   2. exporte LLM_WIKI no seu shell se ainda nao fez:" >&2
+echo "#        export LLM_WIKI=\"$WIKI\"" >&2
+echo "#   3. (opcional) git init no wiki pra versionar: cd $WIKI && git init" >&2
+echo "#   4. comece a usar: arraste uma fonte em raw/sources/ e peca 'ingere'" >&2
+
+echo "$WIKI"
