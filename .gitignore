@@ -1,0 +1,8 @@
+.DS_Store
+*.swp
+*.swo
+*~
+
+# Workspaces de eval gerados fora do repo (mas caso alguém rode em subdir)
+evals/iteration-*/
+evals/*-workspace/

@@ -1,0 +1,50 @@
+{
+  "skill_name": "llm-wiki",
+  "evals": [
+    {
+      "id": 0,
+      "name": "ingest-paper-from-project-folder",
+      "prompt": "acabei de baixar esse paper sobre Mamba, bota no wiki. arquivo em ./mamba-paper.md. pode criar as páginas direto sem perguntar TL;DR, eu já li e é o que eu esperava mesmo.",
+      "description": "Ingest de um paper novo a partir de uma pasta de projeto (fora do wiki). Testa: localizar wiki via $LLM_WIKI, ler CLAUDE.md, criar source + entidades + conceitos com frontmatter correto, atualizar index.md e log.md.",
+      "assertions": [
+        "agent read CLAUDE.md from the wiki",
+        "created wiki/sources/ page with correct frontmatter (type: source, categoria in controlled vocabulary, status set)",
+        "created at least 3 wiki pages (source + entities/concepts derived from paper)",
+        "all created pages use wikilinks [[...]] syntax, never markdown links",
+        "all created pages have YAML frontmatter with required fields (title, type, categoria, tags, created, updated, status)",
+        "categoria values are from controlled vocabulary (pesquisa | projeto-bhub | engenharia | regra-de-negocio | pessoal)",
+        "index.md was updated with new pages",
+        "log.md was appended with ingest entry",
+        "pages written in PT-BR (not English)"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "query-about-triagem-restate",
+      "prompt": "o que meu wiki já tem sobre triagem de documentos no Restate CEXP? me dá um resumo citando as páginas relevantes.",
+      "description": "Query sobre tema já presente no wiki. Testa: ler index.md primeiro, localizar páginas relevantes, citar com wikilinks corretos, sintetizar sem alucinar.",
+      "assertions": [
+        "agent read index.md before answering",
+        "response cites at least 3 wikilinks [[...]] to actual existing pages",
+        "all cited wikilinks correspond to real files in the wiki",
+        "response mentions triagem_core or the 3 channels (Zendesk, GPC, Email)",
+        "response mentions at least one of: DMN pre-classification, fan-out workflow, awakeable callback",
+        "response is in PT-BR",
+        "no wiki pages were created or modified (query is read-only unless user asks to archive)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "import-post-mortem-markdown",
+      "prompt": "tenho um post-mortem em ./post-mortem-triagem-2026-04-15.md. importa pro wiki como fonte bruta (sem processar ainda, só arquiva o arquivo em raw/sources/).",
+      "description": "Import de markdown existente via wiki-import script. Testa: usar o script wiki-import (não cp manual), preservar arquivo sem reprocessar, entender que ingest é passo separado.",
+      "assertions": [
+        "agent invoked wiki-import script (not manual cp)",
+        "file landed in raw/sources/ with date prefix (YYYY-MM-DD-...)",
+        "no wiki/sources/ page was created (ingest is separate step)",
+        "agent explained that ingest is a separate next step",
+        "raw/sources/ file has YAML frontmatter (either preserved or injected)"
+      ]
+    }
+  ]
+}

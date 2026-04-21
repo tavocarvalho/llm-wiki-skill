@@ -1,0 +1,195 @@
+#!/usr/bin/env bash
+# wiki-dump — cria esqueleto de session digest no LLM Wiki.
+#
+# Uso:
+#   wiki-dump [<projeto>] [<slug>] [--categoria <cat>] [--no-edit] [--transcript <path>]
+#
+# Projeto e slug sao OPCIONAIS. Se omitidos:
+#   projeto = basename do PWD
+#   slug    = <branch>-<HHMM> (se em git repo nao-main/master),
+#             senao sess-<HHMM>
+#
+# Ex:
+#   wiki-dump                                      # full auto-detect
+#   wiki-dump bhub-api                             # slug auto
+#   wiki-dump bhub-api refactor-auth               # tudo explicito
+#   wiki-dump llm-wiki session-ingest --categoria engenharia
+#   wiki-dump projeto-x bugfix-x --transcript ~/.claude/projects/-proj/sessions/abc.jsonl
+#
+# Vars de ambiente:
+#   LLM_WIKI       — caminho do wiki (obrigatorio)
+#   EDITOR         — editor para abrir o digest (default: vi; com --no-edit nao abre)
+#
+# Saida:
+#   imprime no stdout o caminho absoluto do digest criado (ultimo eco).
+#
+# Setup sugerido (~/.zshrc):
+#   export LLM_WIKI="$HOME/projetos/llm-wiki"
+#
+# Este script vive dentro da skill: ~/.claude/skills/llm-wiki/scripts/wiki-dump.
+# Invoque pelo path absoluto, ou adicione essa pasta ao PATH se quiser chamar direto.
+
+set -euo pipefail
+
+# --- parsing ------------------------------------------------------------------
+PROJ=""
+SLUG=""
+CATEGORIA="projeto-bhub"
+OPEN_EDITOR=1
+TRANSCRIPT=""
+
+usage() {
+  sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'
+  exit 2
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage ;;
+    --categoria) CATEGORIA="${2:?}"; shift 2 ;;
+    --no-edit)   OPEN_EDITOR=0; shift ;;
+    --transcript) TRANSCRIPT="${2:?}"; shift 2 ;;
+    --) shift; break ;;
+    -*) echo "opção desconhecida: $1" >&2; usage ;;
+    *)
+      if [[ -z "$PROJ" ]]; then PROJ="$1"
+      elif [[ -z "$SLUG" ]]; then SLUG="$1"
+      else echo "argumento extra: $1" >&2; usage
+      fi
+      shift ;;
+  esac
+done
+
+# vocabulário controlado — mantido em sincronia com CLAUDE.md
+case "$CATEGORIA" in
+  pesquisa|projeto-bhub|engenharia|regra-de-negocio|pessoal) : ;;
+  *) echo "categoria invalida: '$CATEGORIA' — use pesquisa|projeto-bhub|engenharia|regra-de-negocio|pessoal" >&2; exit 3 ;;
+esac
+
+# --- contexto -----------------------------------------------------------------
+WIKI="${LLM_WIKI:-$HOME/llm-wiki}"
+[[ -d "$WIKI" ]] || { echo "LLM_WIKI nao existe: $WIKI" >&2; exit 4; }
+
+DATE="$(date +%F)"
+TIME="$(date +%H%M)"
+PWD_NOW="$(pwd)"
+BRANCH="$(git -C "$PWD_NOW" symbolic-ref --short HEAD 2>/dev/null || true)"
+[[ -z "$BRANCH" ]] && BRANCH="n/a"
+COMMIT="$(git -C "$PWD_NOW" rev-parse --short HEAD 2>/dev/null || true)"
+[[ -z "$COMMIT" ]] && COMMIT="n/a"
+
+# --- auto-detect de projeto e slug (se omitidos) -----------------------------
+AUTO_PROJ=0
+AUTO_SLUG=0
+
+if [[ -z "$PROJ" ]]; then
+  PROJ="$(basename "$PWD_NOW")"
+  AUTO_PROJ=1
+fi
+
+if [[ -z "$SLUG" ]]; then
+  if [[ "$BRANCH" != "n/a" && "$BRANCH" != "HEAD" && "$BRANCH" != "main" && "$BRANCH" != "master" ]]; then
+    SLUG="${BRANCH}-${TIME}"
+  else
+    SLUG="sess-${TIME}"
+  fi
+  AUTO_SLUG=1
+fi
+
+SLUG_SAFE="$(echo "$SLUG" | tr '[:upper:] /' '[:lower:]--' | tr -cd 'a-z0-9-')"
+PROJ_SAFE="$(echo "$PROJ" | tr '[:upper:] /' '[:lower:]--' | tr -cd 'a-z0-9-')"
+
+# feedback pro usuario quando defaults foram usados
+if [[ "$AUTO_PROJ" -eq 1 || "$AUTO_SLUG" -eq 1 ]]; then
+  {
+    echo "# auto-detectado:"
+    [[ "$AUTO_PROJ" -eq 1 ]] && echo "#   projeto = $PROJ_SAFE  (basename de $PWD_NOW)"
+    [[ "$AUTO_SLUG" -eq 1 ]] && echo "#   slug    = $SLUG_SAFE  (branch=$BRANCH, hora=$TIME)"
+  } >&2
+fi
+OUT="$WIKI/raw/sources/${DATE}-${PROJ_SAFE}-${SLUG_SAFE}.md"
+
+if [[ -e "$OUT" ]]; then
+  echo "ja existe: $OUT" >&2
+  exit 5
+fi
+
+mkdir -p "$(dirname "$OUT")"
+
+# --- transcript opcional ------------------------------------------------------
+TRANSCRIPT_LINE=""
+if [[ -n "$TRANSCRIPT" ]]; then
+  if [[ ! -f "$TRANSCRIPT" ]]; then
+    echo "transcript nao encontrado: $TRANSCRIPT" >&2
+    exit 6
+  fi
+  ASSETS_DIR="$WIKI/raw/assets/sessions"
+  mkdir -p "$ASSETS_DIR"
+  ASSET_DEST="$ASSETS_DIR/${DATE}-${PROJ_SAFE}-${SLUG_SAFE}.jsonl"
+  cp "$TRANSCRIPT" "$ASSET_DEST"
+  TRANSCRIPT_LINE="Transcrito bruto preservado em \`raw/assets/sessions/$(basename "$ASSET_DEST")\`."
+fi
+
+# --- template -----------------------------------------------------------------
+cat > "$OUT" <<EOF
+---
+title: "Sessão ${PROJ} — ${SLUG}"
+type: source
+categoria: ${CATEGORIA}
+tags: [sessao, ${PROJ_SAFE}]
+created: ${DATE}
+updated: ${DATE}
+sources: []
+status: stable
+event_5w1h:
+  what: ""                    # <-- descreva o que foi feito
+  when: "${DATE}"
+  where: "Claude Code @ ${PWD_NOW} (branch ${BRANCH}, commit ${COMMIT})"
+  who: ["Gustavo", "Claude Code"]
+  why: ""                     # <-- ticket / motivo
+  how: ""                     # <-- abordagem (pair-dev, refactor guiado, etc.)
+---
+
+# Sessão ${PROJ} — ${SLUG}
+
+${TRANSCRIPT_LINE}
+
+## Contexto inicial
+
+<!-- Qual era o estado do repo/problema quando a sessão começou? -->
+
+## Decisões tomadas
+
+<!-- Uma decisão por bullet. Inclua alternativas descartadas. -->
+- **Decisão 1** — ...
+  - Alternativas: ...
+  - Trade-off: ...
+
+## Arquivos modificados
+
+<!-- Lista com 1-linha de cada alteração importante. -->
+
+## Problemas resolvidos
+
+<!-- Cada problema: sintoma → root cause → fix. -->
+
+## Padrões descobertos
+
+<!-- Candidatos a virar concept/snippet no wiki. Linkar após ingest. -->
+
+## Follow-ups
+
+<!-- O que ficou pendente. Cada item deve virar issue ou TODO explícito. -->
+- [ ] ...
+
+## Trechos de transcrito relevantes
+
+<!-- Opcional. Só colar se agregar algo que as seções acima não capturam. -->
+EOF
+
+# --- pós ----------------------------------------------------------------------
+if [[ "$OPEN_EDITOR" -eq 1 ]] && [[ -t 0 ]]; then
+  "${EDITOR:-vi}" "$OUT"
+fi
+
+echo "$OUT"

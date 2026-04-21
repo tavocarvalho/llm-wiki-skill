@@ -1,0 +1,189 @@
+#!/usr/bin/env bash
+# wiki-import — importa um .md existente para raw/sources/ do LLM Wiki.
+#
+# Uso:
+#   wiki-import <arquivo> [<projeto>] [<slug>] [--categoria <cat>] [--move] [--no-date-prefix]
+#
+# Projeto e slug sao OPCIONAIS. Se omitidos:
+#   projeto = basename do PWD
+#   slug    = basename do arquivo sem .md, sanitizado
+#
+# Comportamento:
+#   - Por padrao COPIA (nao move). Use --move para mover.
+#   - Por padrao prefixa YYYY-MM-DD- ao nome. Use --no-date-prefix se o arquivo ja tem data.
+#   - Se o arquivo-fonte ja tem frontmatter YAML no topo (primeira linha `---`),
+#     preserva o conteudo e lista campos obrigatorios faltando.
+#   - Se nao tem frontmatter, injeta um template minimo.
+#
+# Ex:
+#   wiki-import ./notas-reuniao.md                        # tudo auto
+#   wiki-import ~/docs/post-mortem.md bhub-api            # projeto explicito
+#   wiki-import ~/docs/onboarding.md --categoria pesquisa --move
+#   wiki-import ./2026-04-15-call-cliente.md --no-date-prefix
+#
+# Vars de ambiente:
+#   LLM_WIKI — caminho do wiki (obrigatorio)
+#
+# Saida:
+#   imprime no stdout o caminho absoluto do arquivo importado.
+
+set -euo pipefail
+
+# --- parsing ------------------------------------------------------------------
+FILE=""
+PROJ=""
+SLUG=""
+CATEGORIA="projeto-bhub"
+MOVE=0
+NO_DATE_PREFIX=0
+
+usage() {
+  sed -n '2,29p' "$0" | sed 's/^# \{0,1\}//'
+  exit 2
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help) usage ;;
+    --categoria) CATEGORIA="${2:?}"; shift 2 ;;
+    --move) MOVE=1; shift ;;
+    --no-date-prefix) NO_DATE_PREFIX=1; shift ;;
+    --) shift; break ;;
+    -*) echo "opção desconhecida: $1" >&2; usage ;;
+    *)
+      if [[ -z "$FILE" ]]; then FILE="$1"
+      elif [[ -z "$PROJ" ]]; then PROJ="$1"
+      elif [[ -z "$SLUG" ]]; then SLUG="$1"
+      else echo "argumento extra: $1" >&2; usage
+      fi
+      shift ;;
+  esac
+done
+
+[[ -z "$FILE" ]] && { echo "falta o arquivo" >&2; usage; }
+[[ -f "$FILE" ]] || { echo "arquivo nao existe: $FILE" >&2; exit 3; }
+
+case "$CATEGORIA" in
+  pesquisa|projeto-bhub|engenharia|regra-de-negocio|pessoal) : ;;
+  *) echo "categoria invalida: '$CATEGORIA' — use pesquisa|projeto-bhub|engenharia|regra-de-negocio|pessoal" >&2; exit 4 ;;
+esac
+
+# --- contexto -----------------------------------------------------------------
+WIKI="${LLM_WIKI:-$HOME/llm-wiki}"
+[[ -d "$WIKI" ]] || { echo "LLM_WIKI nao existe: $WIKI" >&2; exit 5; }
+
+DATE="$(date +%F)"
+PWD_NOW="$(pwd)"
+FILE_ABS="$(cd "$(dirname "$FILE")" && pwd)/$(basename "$FILE")"
+FILE_BASENAME="$(basename "$FILE" .md)"
+
+# --- auto-detect de projeto e slug (se omitidos) -----------------------------
+AUTO_PROJ=0
+AUTO_SLUG=0
+
+if [[ -z "$PROJ" ]]; then
+  PROJ="$(basename "$PWD_NOW")"
+  AUTO_PROJ=1
+fi
+
+if [[ -z "$SLUG" ]]; then
+  SLUG="$FILE_BASENAME"
+  AUTO_SLUG=1
+fi
+
+SLUG_SAFE="$(echo "$SLUG" | tr '[:upper:] /' '[:lower:]--' | tr -cd 'a-z0-9-')"
+PROJ_SAFE="$(echo "$PROJ" | tr '[:upper:] /' '[:lower:]--' | tr -cd 'a-z0-9-')"
+
+# --- monta nome de destino ----------------------------------------------------
+if [[ "$NO_DATE_PREFIX" -eq 1 ]]; then
+  OUT_NAME="${PROJ_SAFE}-${SLUG_SAFE}.md"
+else
+  OUT_NAME="${DATE}-${PROJ_SAFE}-${SLUG_SAFE}.md"
+fi
+OUT="$WIKI/raw/sources/$OUT_NAME"
+
+if [[ -e "$OUT" ]]; then
+  echo "ja existe: $OUT" >&2
+  exit 6
+fi
+
+mkdir -p "$(dirname "$OUT")"
+
+# --- detecta frontmatter existente --------------------------------------------
+HAS_FRONTMATTER=0
+if [[ "$(head -n 1 "$FILE_ABS" 2>/dev/null)" == "---" ]]; then
+  # procura o segundo --- nas proximas 50 linhas
+  if sed -n '2,50p' "$FILE_ABS" | grep -q "^---$"; then
+    HAS_FRONTMATTER=1
+  fi
+fi
+
+# --- executa copy/move --------------------------------------------------------
+if [[ "$HAS_FRONTMATTER" -eq 1 ]]; then
+  # preserva conteudo como esta
+  if [[ "$MOVE" -eq 1 ]]; then
+    mv "$FILE_ABS" "$OUT"
+  else
+    cp "$FILE_ABS" "$OUT"
+  fi
+
+  # verifica campos obrigatorios
+  FM="$(sed -n '1,/^---$/{/^---$/d; 1d; p;}' "$OUT" 2>/dev/null || true)"
+  MISSING=()
+  for field in title type categoria tags created updated status; do
+    if ! echo "$FM" | grep -qE "^${field}:"; then
+      MISSING+=("$field")
+    fi
+  done
+
+  echo "# frontmatter existente preservado" >&2
+  if [[ ${#MISSING[@]} -gt 0 ]]; then
+    echo "# ATENÇÃO — campos obrigatórios faltando: ${MISSING[*]}" >&2
+    echo "#   edite o arquivo e complete antes de ingerir" >&2
+  else
+    echo "# todos os campos obrigatórios presentes ✓" >&2
+  fi
+else
+  # injeta frontmatter template
+  TITLE="$FILE_BASENAME"  # usuário pode refinar depois
+  TMP="$(mktemp)"
+  cat > "$TMP" <<EOF
+---
+title: "${TITLE}"
+type: source
+categoria: ${CATEGORIA}
+tags: [importado]
+created: ${DATE}
+updated: ${DATE}
+sources: []
+status: draft
+---
+
+EOF
+  cat "$FILE_ABS" >> "$TMP"
+
+  if [[ "$MOVE" -eq 1 ]]; then
+    mv "$TMP" "$OUT"
+    rm -f "$FILE_ABS"
+  else
+    mv "$TMP" "$OUT"
+  fi
+
+  echo "# frontmatter injetado (arquivo original nao tinha)" >&2
+  echo "# revise: title, tags, status — e adicione event_5w1h se for evento" >&2
+fi
+
+# --- feedback de auto-detect --------------------------------------------------
+if [[ "$AUTO_PROJ" -eq 1 || "$AUTO_SLUG" -eq 1 ]]; then
+  {
+    echo "# auto-detectado:"
+    [[ "$AUTO_PROJ" -eq 1 ]] && echo "#   projeto = $PROJ_SAFE  (basename de $PWD_NOW)"
+    [[ "$AUTO_SLUG" -eq 1 ]] && echo "#   slug    = $SLUG_SAFE  (basename do arquivo)"
+  } >&2
+fi
+
+if [[ "$MOVE" -eq 1 ]]; then
+  echo "# origem removida: $FILE_ABS" >&2
+fi
+
+echo "$OUT"
