@@ -143,6 +143,7 @@ status: stable
 title: "Sessão {projeto} — {feature ou problema}"
 type: source
 categoria: projeto-bhub
+repo: https://github.com/org/repo   # opcional; auto-preenchido pelo wiki-dump se o PWD é um git repo
 tags: [sessao, {projeto}]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -203,6 +204,7 @@ event_5w1h:
 title: "{Projeto}"
 type: project
 categoria: {projeto-bhub | pessoal}
+repo: https://github.com/org/repo   # opcional; URL canônica do projeto se versionado em git
 tags: [...]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD

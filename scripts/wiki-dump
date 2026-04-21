@@ -78,6 +78,21 @@ BRANCH="$(git -C "$PWD_NOW" symbolic-ref --short HEAD 2>/dev/null || true)"
 COMMIT="$(git -C "$PWD_NOW" rev-parse --short HEAD 2>/dev/null || true)"
 [[ -z "$COMMIT" ]] && COMMIT="n/a"
 
+# Remote URL, normalizado SSH→HTTPS e sem sufixo .git.
+# Hosts exoticos (gitolite sem HTTPS) passam literal — raro, usuario corrige manual.
+REMOTE_RAW="$(git -C "$PWD_NOW" config --get remote.origin.url 2>/dev/null || true)"
+REMOTE=""
+if [[ -n "$REMOTE_RAW" ]]; then
+  if [[ "$REMOTE_RAW" =~ ^git@([^:]+):(.+)$ ]]; then
+    REMOTE="https://${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+  elif [[ "$REMOTE_RAW" =~ ^ssh://git@([^/]+)/(.+)$ ]]; then
+    REMOTE="https://${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+  else
+    REMOTE="$REMOTE_RAW"
+  fi
+  REMOTE="${REMOTE%.git}"
+fi
+
 # --- auto-detect de projeto e slug (se omitidos) -----------------------------
 AUTO_PROJ=0
 AUTO_SLUG=0
@@ -100,11 +115,12 @@ SLUG_SAFE="$(echo "$SLUG" | tr '[:upper:] /' '[:lower:]--' | tr -cd 'a-z0-9-')"
 PROJ_SAFE="$(echo "$PROJ" | tr '[:upper:] /' '[:lower:]--' | tr -cd 'a-z0-9-')"
 
 # feedback pro usuario quando defaults foram usados
-if [[ "$AUTO_PROJ" -eq 1 || "$AUTO_SLUG" -eq 1 ]]; then
+if [[ "$AUTO_PROJ" -eq 1 || "$AUTO_SLUG" -eq 1 || -n "$REMOTE" ]]; then
   {
     echo "# auto-detectado:"
     [[ "$AUTO_PROJ" -eq 1 ]] && echo "#   projeto = $PROJ_SAFE  (basename de $PWD_NOW)"
     [[ "$AUTO_SLUG" -eq 1 ]] && echo "#   slug    = $SLUG_SAFE  (branch=$BRANCH, hora=$TIME)"
+    [[ -n "$REMOTE" ]]       && echo "#   repo    = $REMOTE"
   } >&2
 fi
 OUT="$WIKI/raw/sources/${DATE}-${PROJ_SAFE}-${SLUG_SAFE}.md"
@@ -131,12 +147,17 @@ if [[ -n "$TRANSCRIPT" ]]; then
 fi
 
 # --- template -----------------------------------------------------------------
+REPO_LINE=""
+if [[ -n "$REMOTE" ]]; then
+  REPO_LINE="repo: ${REMOTE}"$'\n'
+fi
+
 cat > "$OUT" <<EOF
 ---
 title: "Sessão ${PROJ} — ${SLUG}"
 type: source
 categoria: ${CATEGORIA}
-tags: [sessao, ${PROJ_SAFE}]
+${REPO_LINE}tags: [sessao, ${PROJ_SAFE}]
 created: ${DATE}
 updated: ${DATE}
 sources: []

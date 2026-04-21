@@ -61,6 +61,7 @@ status: stub | draft | stable
 ### Campos opcionais
 
 - **`domain`**: `bhub | pessoal | pesquisa`. Só em synthesis, pra marcar se a conclusão é domain-specific.
+- **`repo`**: URL HTTPS do repositório git associado à página. Usado em `source` (sessão vem de trabalho num repo) e `project` (URL canônica do projeto). Os scripts `wiki-dump` e `wiki-import` preenchem automaticamente via `git config --get remote.origin.url`, normalizando `git@host:path.git` → `https://host/path`. Dimensão diferente de `event_5w1h.where` — este descreve a ferramenta de trabalho (Cowork/Claude Code), `repo` descreve o artefato do código.
 - **`event_5w1h`**: só em sources do tipo evento (sessão, reunião, incidente, post-mortem).
   ```yaml
   event_5w1h:

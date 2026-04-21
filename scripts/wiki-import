@@ -77,6 +77,22 @@ PWD_NOW="$(pwd)"
 FILE_ABS="$(cd "$(dirname "$FILE")" && pwd)/$(basename "$FILE")"
 FILE_BASENAME="$(basename "$FILE" .md)"
 
+# Remote URL do git repo que contem o arquivo original (se houver).
+# Mesma normalizacao do wiki-dump: SSH→HTTPS, strip .git.
+SOURCE_DIR="$(dirname "$FILE_ABS")"
+REMOTE_RAW="$(git -C "$SOURCE_DIR" config --get remote.origin.url 2>/dev/null || true)"
+REMOTE=""
+if [[ -n "$REMOTE_RAW" ]]; then
+  if [[ "$REMOTE_RAW" =~ ^git@([^:]+):(.+)$ ]]; then
+    REMOTE="https://${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+  elif [[ "$REMOTE_RAW" =~ ^ssh://git@([^/]+)/(.+)$ ]]; then
+    REMOTE="https://${BASH_REMATCH[1]}/${BASH_REMATCH[2]}"
+  else
+    REMOTE="$REMOTE_RAW"
+  fi
+  REMOTE="${REMOTE%.git}"
+fi
+
 # --- auto-detect de projeto e slug (se omitidos) -----------------------------
 AUTO_PROJ=0
 AUTO_SLUG=0
@@ -143,16 +159,24 @@ if [[ "$HAS_FRONTMATTER" -eq 1 ]]; then
   else
     echo "# todos os campos obrigatórios presentes ✓" >&2
   fi
+  if [[ -n "$REMOTE" ]] && ! echo "$FM" | grep -qE "^repo:"; then
+    echo "# DICA — arquivo veio de git repo com remote: $REMOTE" >&2
+    echo "#   considere adicionar 'repo: $REMOTE' no frontmatter" >&2
+  fi
 else
   # injeta frontmatter template
   TITLE="$FILE_BASENAME"  # usuário pode refinar depois
+  REPO_LINE=""
+  if [[ -n "$REMOTE" ]]; then
+    REPO_LINE="repo: ${REMOTE}"$'\n'
+  fi
   TMP="$(mktemp)"
   cat > "$TMP" <<EOF
 ---
 title: "${TITLE}"
 type: source
 categoria: ${CATEGORIA}
-tags: [importado]
+${REPO_LINE}tags: [importado]
 created: ${DATE}
 updated: ${DATE}
 sources: []
@@ -174,11 +198,12 @@ EOF
 fi
 
 # --- feedback de auto-detect --------------------------------------------------
-if [[ "$AUTO_PROJ" -eq 1 || "$AUTO_SLUG" -eq 1 ]]; then
+if [[ "$AUTO_PROJ" -eq 1 || "$AUTO_SLUG" -eq 1 || -n "$REMOTE" ]]; then
   {
     echo "# auto-detectado:"
     [[ "$AUTO_PROJ" -eq 1 ]] && echo "#   projeto = $PROJ_SAFE  (basename de $PWD_NOW)"
     [[ "$AUTO_SLUG" -eq 1 ]] && echo "#   slug    = $SLUG_SAFE  (basename do arquivo)"
+    [[ -n "$REMOTE" ]]       && echo "#   repo    = $REMOTE"
   } >&2
 fi
 

@@ -108,7 +108,7 @@ Estas são não-negociáveis — derivadas das seções 2, 3, e 8 do `CLAUDE.md`
 
 1. **`raw/` é imutável.** LLM lê, nunca modifica. Correções de fonte → nova versão.
 2. **Páginas do wiki sempre em PT-BR.** Fontes podem ser em qualquer idioma, mas páginas geradas são PT-BR.
-3. **Frontmatter YAML obrigatório** em toda página de wiki — com campos `title`, `type`, `categoria`, `tags`, `created`, `updated`, `status`.
+3. **Frontmatter YAML obrigatório** em toda página de wiki — com campos `title`, `type`, `categoria`, `tags`, `created`, `updated`, `status`. Campos opcionais relevantes: `sources`, `domain` (só em synthesis), `event_5w1h` (só em source tipo evento), `repo` (URL HTTPS do repo git, em sources de sessão e páginas de project). Se o frontmatter já tem `repo:` (scripts auto-preenchem quando o PWD é git repo), **preserve** — é rastreabilidade de qual codebase originou a página.
 4. **Vocabulário controlado de `categoria`**: `pesquisa | projeto-bhub | engenharia | regra-de-negocio | pessoal`. Se precisar de outro, **edite o `CLAUDE.md` primeiro**.
 5. **Vocabulário controlado de `type`**: `entity | concept | source | project | synthesis | query`. Uma página = um tipo. Se o conteúdo é híbrido, crie duas páginas e linke.
 6. **Links são wikilinks Obsidian**: `[[slug]]` ou `[[../subdir/slug]]`. Nunca URLs relativas `./foo.md`.
