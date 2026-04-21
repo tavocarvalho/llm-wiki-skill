@@ -17,7 +17,7 @@
 #
 # Ex:
 #   wiki-import ./notas-reuniao.md                        # tudo auto
-#   wiki-import ~/docs/post-mortem.md bhub-api            # projeto explicito
+#   wiki-import ~/docs/post-mortem.md meu-app            # projeto explicito
 #   wiki-import ~/docs/onboarding.md --categoria pesquisa --move
 #   wiki-import ./2026-04-15-call-cliente.md --no-date-prefix
 #
@@ -33,7 +33,7 @@ set -euo pipefail
 FILE=""
 PROJ=""
 SLUG=""
-CATEGORIA="projeto-bhub"
+CATEGORIA="projeto"
 MOVE=0
 NO_DATE_PREFIX=0
 
@@ -63,10 +63,13 @@ done
 [[ -z "$FILE" ]] && { echo "falta o arquivo" >&2; usage; }
 [[ -f "$FILE" ]] || { echo "arquivo nao existe: $FILE" >&2; exit 3; }
 
-case "$CATEGORIA" in
-  pesquisa|projeto-bhub|engenharia|regra-de-negocio|pessoal) : ;;
-  *) echo "categoria invalida: '$CATEGORIA' — use pesquisa|projeto-bhub|engenharia|regra-de-negocio|pessoal" >&2; exit 4 ;;
-esac
+# Validacao semantica de CATEGORIA e' responsabilidade do agente (que le
+# $WIKI_ROOT/CLAUDE.md pra saber o vocabulario real daquele wiki). O script
+# aceita qualquer string — so rejeita vazio ou com caracteres de shell.
+if [[ -z "$CATEGORIA" || "$CATEGORIA" =~ [[:space:]\"\'\$\`] ]]; then
+  echo "categoria invalida: '$CATEGORIA' — use um slug simples, sem espacos/quotes" >&2
+  exit 4
+fi
 
 # --- contexto -----------------------------------------------------------------
 WIKI="${LLM_WIKI:-$HOME/llm-wiki}"

@@ -11,8 +11,8 @@
 #
 # Ex:
 #   wiki-dump                                      # full auto-detect
-#   wiki-dump bhub-api                             # slug auto
-#   wiki-dump bhub-api refactor-auth               # tudo explicito
+#   wiki-dump meu-app                             # slug auto
+#   wiki-dump meu-app refactor-auth               # tudo explicito
 #   wiki-dump llm-wiki session-ingest --categoria engenharia
 #   wiki-dump projeto-x bugfix-x --transcript ~/.claude/projects/-proj/sessions/abc.jsonl
 #
@@ -34,7 +34,7 @@ set -euo pipefail
 # --- parsing ------------------------------------------------------------------
 PROJ=""
 SLUG=""
-CATEGORIA="projeto-bhub"
+CATEGORIA="projeto"
 OPEN_EDITOR=1
 TRANSCRIPT=""
 
@@ -60,11 +60,13 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# vocabulário controlado — mantido em sincronia com CLAUDE.md
-case "$CATEGORIA" in
-  pesquisa|projeto-bhub|engenharia|regra-de-negocio|pessoal) : ;;
-  *) echo "categoria invalida: '$CATEGORIA' — use pesquisa|projeto-bhub|engenharia|regra-de-negocio|pessoal" >&2; exit 3 ;;
-esac
+# Validacao semantica de CATEGORIA e' responsabilidade do agente (que le
+# $WIKI_ROOT/CLAUDE.md pra saber o vocabulario real daquele wiki). O script
+# aceita qualquer string — so rejeita vazio ou com caracteres de shell.
+if [[ -z "$CATEGORIA" || "$CATEGORIA" =~ [[:space:]\"\'\$\`] ]]; then
+  echo "categoria invalida: '$CATEGORIA' — use um slug simples, sem espacos/quotes" >&2
+  exit 3
+fi
 
 # --- contexto -----------------------------------------------------------------
 WIKI="${LLM_WIKI:-$HOME/llm-wiki}"
@@ -166,7 +168,7 @@ event_5w1h:
   what: ""                    # <-- descreva o que foi feito
   when: "${DATE}"
   where: "Claude Code @ ${PWD_NOW} (branch ${BRANCH}, commit ${COMMIT})"
-  who: ["Gustavo", "Claude Code"]
+  who: ["<usuário>", "Claude Code"]
   why: ""                     # <-- ticket / motivo
   how: ""                     # <-- abordagem (pair-dev, refactor guiado, etc.)
 ---

@@ -25,7 +25,7 @@ Ingere uma sessão **passada** no LLM Wiki sem sair da sessão atual. Usa MCP `l
    - `what` — objetivo da sessão (deduzir do primeiro request + primeiros assistants).
    - `when` — timestamp da primeira mensagem (formato `YYYY-MM-DD` + hora de início, + duração se inferível).
    - `where` — ferramenta + caminho do projeto (`cwd` do Claude Code, ou nome do workspace no Cowork).
-   - `who` — participantes (quase sempre `["Gustavo", "Claude"]` ou `["Gustavo", "Claude Code"]`).
+   - `who` — participantes (tipicamente `["<usuário>", "Claude"]` ou `["<usuário>", "Claude Code"]`; substitua pelo nome real se conhecer).
    - `why` — motivo/ticket (perguntar se não explícito).
    - `how` — abordagem (pair-dev, debug, refactor, research).
 
@@ -45,6 +45,6 @@ Ingere uma sessão **passada** no LLM Wiki sem sair da sessão atual. Usa MCP `l
 
 ## Notas
 
-- **Não esqueça a categoria.** Padrão é `projeto-bhub`; para sessões de pesquisa pura, use `--categoria pesquisa`.
+- **Não esqueça a categoria.** Default do script é `projeto`; para sessões de pesquisa pura, use `--categoria pesquisa`. Consulte o `CLAUDE.md` do wiki pra saber se há vocabulário customizado.
 - **Privacidade.** Se o transcrito tocar em dados sensíveis (senhas, tokens, PII de clientes), avise e ofereça redação antes de arquivar.
 - **Sessões longas.** Para sessões >100k tokens, leia em chunks e sumarize iterativamente antes de consolidar.

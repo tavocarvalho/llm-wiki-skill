@@ -12,7 +12,7 @@
         "created at least 3 wiki pages (source + entities/concepts derived from paper)",
         "all created pages use wikilinks [[...]] syntax, never markdown links",
         "all created pages have YAML frontmatter with required fields (title, type, categoria, tags, created, updated, status)",
-        "categoria values are from controlled vocabulary (pesquisa | projeto-bhub | engenharia | regra-de-negocio | pessoal)",
+        "categoria values match the vocabulary declared in the wiki's CLAUDE.md (default bootstrap vocabulary is pesquisa | projeto | engenharia | referencia | pessoal, but specific wikis may customize)",
         "index.md was updated with new pages",
         "log.md was appended with ingest entry",
         "pages written in PT-BR (not English)"
@@ -20,15 +20,13 @@
     },
     {
       "id": 1,
-      "name": "query-about-triagem-restate",
-      "prompt": "o que meu wiki já tem sobre triagem de documentos no Restate CEXP? me dá um resumo citando as páginas relevantes.",
+      "name": "query-existing-topic",
+      "prompt": "o que meu wiki já tem sobre arquitetura de microserviços? me dá um resumo citando as páginas relevantes.",
       "description": "Query sobre tema já presente no wiki. Testa: ler index.md primeiro, localizar páginas relevantes, citar com wikilinks corretos, sintetizar sem alucinar.",
       "assertions": [
         "agent read index.md before answering",
-        "response cites at least 3 wikilinks [[...]] to actual existing pages",
+        "response cites wikilinks [[...]] to actual existing pages (at least 3 if the wiki has coverage)",
         "all cited wikilinks correspond to real files in the wiki",
-        "response mentions triagem_core or the 3 channels (Zendesk, GPC, Email)",
-        "response mentions at least one of: DMN pre-classification, fan-out workflow, awakeable callback",
         "response is in PT-BR",
         "no wiki pages were created or modified (query is read-only unless user asks to archive)"
       ]
@@ -36,7 +34,7 @@
     {
       "id": 2,
       "name": "import-post-mortem-markdown",
-      "prompt": "tenho um post-mortem em ./post-mortem-triagem-2026-04-15.md. importa pro wiki como fonte bruta (sem processar ainda, só arquiva o arquivo em raw/sources/).",
+      "prompt": "tenho um post-mortem em ./post-mortem-incidente.md. importa pro wiki como fonte bruta (sem processar ainda, só arquiva o arquivo em raw/sources/).",
       "description": "Import de markdown existente via wiki-import script. Testa: usar o script wiki-import (não cp manual), preservar arquivo sem reprocessar, entender que ingest é passo separado.",
       "assertions": [
         "agent invoked wiki-import script (not manual cp)",
@@ -44,6 +42,19 @@
         "no wiki/sources/ page was created (ingest is separate step)",
         "agent explained that ingest is a separate next step",
         "raw/sources/ file has YAML frontmatter (either preserved or injected)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "init-empty-wiki",
+      "prompt": "acabei de clonar a skill e apontar $LLM_WIKI pra uma pasta vazia. como inicializo o wiki?",
+      "description": "Bootstrap de wiki novo via /wiki-init. Testa: reconhecer que o wiki não foi inicializado, oferecer rodar wiki-init, copiar os templates do bootstrap, criar estrutura de diretórios.",
+      "assertions": [
+        "agent invoked scripts/wiki-init (or /wiki-init slash command)",
+        "created CLAUDE.md, AGENTS.md, README.md, index.md, log.md in $LLM_WIKI",
+        "created directory structure: raw/sources, raw/assets/sessions, wiki/{entities,concepts,sources,projects,synthesis,queries}",
+        "CLAUDE.md contains controlled vocabulary section (categoria)",
+        "agent suggested next steps (review categorias, optional git init, first ingestion)"
       ]
     }
   ]

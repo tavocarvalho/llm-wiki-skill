@@ -88,7 +88,7 @@ Use quando a conversa atual é trabalho real em projeto (código, decisões, deb
 1. Verifique `$LLM_WIKI` exportado. Se não, avise e pare.
 2. Invoque `"$HOME/.claude/skills/llm-wiki/scripts/wiki-dump" [projeto] [slug] --no-edit` via Bash. Captura o path do digest esqueleto que o script imprime.
 3. **Você (agente)** preenche o digest — não delegue ao humano. Seções: `event_5w1h` (what/when/where/who/why/how), Contexto inicial, Decisões (com alternativas descartadas), Arquivos modificados, Problemas resolvidos (sintoma → root cause → fix), Padrões descobertos, Follow-ups.
-4. **Não invente.** Se `why` não ficou claro, deixe `<!-- confirmar com Gustavo -->`.
+4. **Não invente.** Se `why` não ficou claro, deixe `<!-- confirmar com o usuário -->`.
 5. Reporte path do digest + 3-bullet resumo. Sugira ingerir na próxima sessão aberta no wiki.
 
 Detalhes completos no slash command correspondente em `commands/wiki-dump.md` (dentro desta skill).
@@ -112,7 +112,7 @@ Estas são não-negociáveis — derivadas das seções 2, 3, e 8 do `CLAUDE.md`
 1. **`raw/` é imutável.** LLM lê, nunca modifica. Correções de fonte → nova versão.
 2. **Páginas do wiki sempre em PT-BR.** Fontes podem ser em qualquer idioma, mas páginas geradas são PT-BR.
 3. **Frontmatter YAML obrigatório** em toda página de wiki — com campos `title`, `type`, `categoria`, `tags`, `created`, `updated`, `status`. Campos opcionais relevantes: `sources`, `domain` (só em synthesis), `event_5w1h` (só em source tipo evento), `repo` (URL HTTPS do repo git, em sources de sessão e páginas de project). Se o frontmatter já tem `repo:` (scripts auto-preenchem quando o PWD é git repo), **preserve** — é rastreabilidade de qual codebase originou a página.
-4. **Vocabulário controlado de `categoria`**: `pesquisa | projeto-bhub | engenharia | regra-de-negocio | pessoal`. Se precisar de outro, **edite o `CLAUDE.md` primeiro**.
+4. **Vocabulário controlado de `categoria`**: definido no `CLAUDE.md` do wiki específico — leia antes de escrever páginas. Exemplo genérico do bootstrap: `pesquisa | projeto | engenharia | referencia | pessoal`. Se precisar de outro valor, **edite o `CLAUDE.md` primeiro**.
 5. **Vocabulário controlado de `type`**: `entity | concept | source | project | synthesis | query`. Uma página = um tipo. Se o conteúdo é híbrido, crie duas páginas e linke.
 6. **Links são wikilinks Obsidian**: `[[slug]]` ou `[[../subdir/slug]]`. Nunca URLs relativas `./foo.md`.
 7. **Nomes de arquivo são kebab-case sem acento**: `llm-wiki.md`, `vannevar-bush.md`.
@@ -170,8 +170,8 @@ Regra prática: se a operação toca mais de 3 páginas, ou se você não execut
 **Usuário**: "cara, acabei de baixar esse paper do Cao sobre extração 5W1H, bota no wiki"
 → Operação 1 (Ingest). Localize wiki, leia `CLAUDE.md`, abra o PDF, discuta TL;DR, crie source + conceitos + entidades, atualize index/log.
 
-**Usuário**: "o que a gente já anotou sobre Restate?"
-→ Operação 2 (Query). Leia `index.md`, encontre páginas que mencionam Restate, sintetize com wikilinks.
+**Usuário**: "o que a gente já anotou sobre workflows assíncronos?"
+→ Operação 2 (Query). Leia `index.md`, encontre páginas que mencionam o tema, sintetize com wikilinks.
 
 **Usuário**: "salva essa sessão, acabamos de resolver um bug chato"
 → Operação 4 (Session-dump). Rode `wiki-dump`, preencha digest com root cause do bug, reporte path.

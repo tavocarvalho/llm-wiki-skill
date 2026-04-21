@@ -20,7 +20,7 @@ llm-wiki/
 │   ├── entities/        # pessoas, empresas, ferramentas, produtos
 │   ├── concepts/        # ideias, termos, padrões, frameworks
 │   ├── sources/         # uma página por fonte ingerida
-│   ├── projects/        # páginas de projeto (bhub ou pessoais)
+│   ├── projects/        # páginas de projeto (profissionais ou pessoais)
 │   ├── synthesis/       # análises transversais, comparações, teses
 │   └── queries/         # respostas arquivadas a perguntas
 │
@@ -46,7 +46,7 @@ Regras duras de camadas:
 ---
 title: "Nome legível da página"
 type: entity | concept | source | project | synthesis | query
-categoria: pesquisa | projeto-bhub | engenharia | regra-de-negocio | pessoal
+categoria: pesquisa | projeto | engenharia | referencia | pessoal
 tags: [tag1, tag2]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -60,7 +60,7 @@ status: stub | draft | stable
 
 ### Campos opcionais
 
-- **`domain`**: `bhub | pessoal | pesquisa`. Só em synthesis, pra marcar se a conclusão é domain-specific.
+- **`domain`**: valor livre (ex: `profissional | pessoal | pesquisa`). Só em synthesis, pra marcar se a conclusão é domain-specific. O vocabulário real vem do `CLAUDE.md` do wiki específico.
 - **`repo`**: URL HTTPS do repositório git associado à página. Usado em `source` (sessão vem de trabalho num repo) e `project` (URL canônica do projeto). Os scripts `wiki-dump` e `wiki-import` preenchem automaticamente via `git config --get remote.origin.url`, normalizando `git@host:path.git` → `https://host/path`. Dimensão diferente de `event_5w1h.where` — este descreve a ferramenta de trabalho (Cowork/Claude Code), `repo` descreve o artefato do código.
 - **`event_5w1h`**: só em sources do tipo evento (sessão, reunião, incidente, post-mortem).
   ```yaml
@@ -79,16 +79,16 @@ status: stub | draft | stable
   - `entity` — pessoas, empresas, ferramentas, produtos, sistemas.
   - `concept` — ideias, termos, padrões, frameworks, abstrações.
   - `source` — uma por fonte ingerida (paper, artigo, spec, digest).
-  - `project` — projeto em andamento (BHub ou pessoal).
+  - `project` — projeto em andamento (profissional ou pessoal).
   - `synthesis` — comparações, teses, análises transversais combinando várias fontes.
   - `query` — resposta arquivada a uma pergunta. Nome com data: `YYYY-MM-DD-slug.md`.
 
-- **`categoria`** (fixo):
+- **`categoria`** (exemplo genérico — o vocabulário real vem do `CLAUDE.md` do wiki específico):
   - `pesquisa` — papers, conceitos acadêmicos, teoria.
-  - `projeto-bhub` — tudo relacionado a produto/projeto BHub.
+  - `projeto` — projetos em andamento (profissionais ou pessoais).
   - `engenharia` — patterns técnicos, ferramentas, stacks.
-  - `regra-de-negocio` — conhecimento interno de domínio/processos.
-  - `pessoal` — notas, modelos mentais, conclusões do Gustavo.
+  - `referencia` — material consultivo (procedimentos, specs, runbooks).
+  - `pessoal` — notas, modelos mentais, conclusões pessoais.
 
 - **`status`** (fixo):
   - `stub` — esboço mínimo, esperando mais fontes.

@@ -8,7 +8,7 @@ Copie, adapte, não improvise. Os templates abaixo respeitam o schema completo.
 ---
 title: "{Nome}"
 type: entity
-categoria: {pesquisa | projeto-bhub | engenharia | regra-de-negocio | pessoal}
+categoria: {pesquisa | projeto | engenharia | referencia | pessoal}
 tags: [tag1, tag2]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD
@@ -142,7 +142,7 @@ status: stable
 ---
 title: "Sessão {projeto} — {feature ou problema}"
 type: source
-categoria: projeto-bhub
+categoria: projeto
 repo: https://github.com/org/repo   # opcional; auto-preenchido pelo wiki-dump se o PWD é um git repo
 tags: [sessao, {projeto}]
 created: YYYY-MM-DD
@@ -154,7 +154,7 @@ event_5w1h:
   what: "Objetivo concreto da sessão em uma frase."
   when: "YYYY-MM-DD (duração ~Nh)"
   where: "Cowork | Claude Code | Cursor | outro"
-  who: ["Gustavo", "Agente LLM"]
+  who: ["<usuário>", "Agente LLM"]
   why: "Ticket/issue/motivo originador."
   how: "Abordagem (TDD, pair-dev, refactor guiado por testes)."
 ---
@@ -203,7 +203,7 @@ event_5w1h:
 ---
 title: "{Projeto}"
 type: project
-categoria: {projeto-bhub | pessoal}
+categoria: {projeto | pessoal}
 repo: https://github.com/org/repo   # opcional; URL canônica do projeto se versionado em git
 tags: [...]
 created: YYYY-MM-DD
@@ -260,7 +260,7 @@ status: draft
 title: "{Tese ou pergunta sintética}"
 type: synthesis
 categoria: {...}
-domain: {bhub | pessoal | pesquisa}   # opcional
+domain: {profissional | pessoal | pesquisa}   # opcional; valor livre
 tags: [...]
 created: YYYY-MM-DD
 updated: YYYY-MM-DD

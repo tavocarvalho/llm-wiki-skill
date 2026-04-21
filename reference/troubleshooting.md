@@ -78,7 +78,7 @@ Se nada funciona, não chute. Avise: "Não consegui localizar o wiki. Qual o pat
 
 **Fix**:
 
-1. Vocabulário é `pesquisa | projeto-bhub | engenharia | regra-de-negocio | pessoal`.
+1. O vocabulário real vem do `CLAUDE.md` do wiki específico. Leia ele pra saber as categorias válidas. Exemplo genérico do bootstrap: `pesquisa | projeto | engenharia | referencia | pessoal`.
 2. Se o conceito pedido é legítimo e recorrente, proponha **editar o `CLAUDE.md`** pra adicionar ao vocabulário.
 3. Se é só um engano, corrija pro valor correto mais próximo e cite no log: `- **Frontmatter**: corrigido [[slug]] (arquitetura → engenharia)`.
 

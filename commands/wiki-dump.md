@@ -11,9 +11,11 @@ Gera um digest **curado** da sessão atual e arquiva em `$LLM_WIKI/raw/sources/`
 
 - **projeto** — default: `basename $PWD`.
 - **slug** — default: `<branch>-<HHMM>` se em git repo não-main/master, senão `sess-<HHMM>`.
-- **--categoria** — default: `projeto-bhub`. Vocabulário: `pesquisa | projeto-bhub | engenharia | regra-de-negocio | pessoal`.
+- **--categoria** — default: `projeto`. O vocabulário real vem do `CLAUDE.md` do wiki; se o default não bater, passe explícito (ex: `--categoria pesquisa`).
 
 Basta digitar `/wiki-dump` sem argumentos na maioria dos casos. Só passe argumentos explícitos se quiser sobrescrever os defaults (ex: `/wiki-dump --categoria engenharia` quando o trabalho é tech-debt transversal).
+
+**Antes de preencher a categoria, leia o `CLAUDE.md` do wiki** pra saber o vocabulário real — ele pode ter categorias customizadas (ex: `projeto-acme`, `regra-de-negocio`) que divergem do default genérico do script.
 
 ## Passos (executar em ordem)
 
@@ -43,7 +45,7 @@ Basta digitar `/wiki-dump` sem argumentos na maioria dos casos. Só passe argume
 
 ## Regras importantes
 
-- **Não invente.** Se algo não ficou claro na sessão (ex: `why`), deixe em branco com `<!-- confirmar com Gustavo -->` em vez de alucinar.
+- **Não invente.** Se algo não ficou claro na sessão (ex: `why`), deixe em branco com `<!-- confirmar com o usuário -->` em vez de alucinar.
 - **Não inclua transcrito bruto por padrão.** A seção "Trechos de transcrito relevantes" só deve ser preenchida se agregar contexto que as seções estruturadas não cobrem.
 - **Preserve decisões com contexto.** Uma decisão sem alternativa descartada ou trade-off é ruído — descarte ou complete.
 - **Se o slug auto-derivado for genérico** (ex: `sess-1639` em repo sem branch descritiva), considere sugerir ao usuário um slug melhor e perguntar se quer renomear o arquivo antes de fechar.

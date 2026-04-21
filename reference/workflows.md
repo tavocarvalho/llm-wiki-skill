@@ -257,10 +257,10 @@ O script imprime:
 Edite o arquivo criado com:
 
 - **`event_5w1h.what`** — 1 frase com o objetivo real. NÃO "trabalhamos em X" — seja concreto: "refatoramos o parser de NF-e pra suportar XML 4.0".
-- **`event_5w1h.why`** — ticket, issue, motivo. Se não souber, **pergunte ao usuário**, não invente. Se ele não souber/não quiser dizer, deixe `<!-- confirmar com Gustavo -->`.
+- **`event_5w1h.why`** — ticket, issue, motivo. Se não souber, **pergunte ao usuário**, não invente. Se ele não souber/não quiser dizer, deixe `<!-- confirmar com o usuário -->`.
 - **`event_5w1h.how`** — abordagem (ex: "TDD via pytest, pair-dev com Claude Code, refactor guiado por testes").
 - **`event_5w1h.where`** — a ferramenta (Cowork, Claude Code, Cursor).
-- **`event_5w1h.who`** — `["Gustavo", "Agente LLM"]` tipicamente.
+- **`event_5w1h.who`** — `["<usuário>", "Agente LLM"]` tipicamente (o agente substitui pelo nome real se conhecer).
 - **`event_5w1h.when`** — data + duração estimada.
 
 Seções:
@@ -301,7 +301,7 @@ Seções:
 Defaults:
 - projeto: `basename $PWD`.
 - slug: nome do arquivo sanitizado.
-- categoria: `projeto-bhub`.
+- categoria: `projeto` (default; o agente pode ajustar pro vocabulário real do wiki após ler o `CLAUDE.md`).
 - Operação: copy (use `--move` pra mover).
 - Prefixo de data: `YYYY-MM-DD-` (use `--no-date-prefix` pra omitir).
 

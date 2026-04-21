@@ -14,7 +14,7 @@ Diferença para `/wiki-dump`: `wiki-dump` **gera** um digest a partir da sessão
 - **arquivo** (obrigatório) — path do `.md` a importar.
 - **projeto** (opcional) — default: `basename $PWD`.
 - **slug** (opcional) — default: nome do arquivo sem `.md`, sanitizado.
-- **--categoria** — default `projeto-bhub`. Vocabulário: `pesquisa | projeto-bhub | engenharia | regra-de-negocio | pessoal`.
+- **--categoria** — default `projeto`. O vocabulário real vem do `CLAUDE.md` do wiki; se o default não bater, passe explícito (ex: `--categoria pesquisa`).
 - **--move** — move em vez de copiar (default é copiar).
 - **--no-date-prefix** — não prefixa `YYYY-MM-DD-` (útil se o arquivo já tem data no nome).
 
