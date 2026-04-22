@@ -87,7 +87,7 @@ Use quando a conversa atual é trabalho real em projeto (código, decisões, deb
 **Fluxo curto**:
 1. Verifique `$LLM_WIKI` exportado. Se não, avise e pare.
 2. Invoque `"$HOME/.claude/skills/llm-wiki/scripts/wiki-dump" [projeto] [slug] --no-edit` via Bash. Captura o path do digest esqueleto que o script imprime.
-3. **Você (agente)** preenche o digest — não delegue ao humano. Seções: `event_5w1h` (what/when/where/who/why/how), Contexto inicial, Decisões (com alternativas descartadas), Arquivos modificados, Problemas resolvidos (sintoma → root cause → fix), Padrões descobertos, Follow-ups.
+3. **Você (agente)** preenche o digest — não delegue ao humano. Seções: `event_5w1h` (what/when/where/who/why/how), Contexto inicial, Decisões (com alternativas descartadas), **Regras de negócio tocadas** (gatilho pro ingest atualizar project page; vazio se não aplica), Arquivos modificados, Problemas resolvidos (sintoma → root cause → fix), Padrões descobertos, Follow-ups.
 4. **Não invente.** Se `why` não ficou claro, deixe `<!-- confirmar com o usuário -->`.
 5. Reporte path do digest + 3-bullet resumo. Sugira ingerir na próxima sessão aberta no wiki.
 

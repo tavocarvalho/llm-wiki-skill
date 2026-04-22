@@ -54,6 +54,8 @@ Típico: uma fonte substancial toca 10-15 páginas (5 novas + 10 atualizadas).
 
 Use o template apropriado pra cada tipo (`entity`, `concept`, `project` ...). Em stubs, tudo bem deixar seções incompletas — marque `status: stub`.
 
+**Project pages são hubs vivos.** Se a fonte toca requisitos ou regras de negócio de um `wiki/projects/X` existente, atualize as seções "Decisões ativas", "Riscos" ou "Próximos passos" do project page **neste mesmo ingest** — não como follow-up opcional. Se o digest da fonte tem uma seção "Regras de negócio tocadas" preenchida, ela é o gatilho direto (cada entrada listada ali vira update no project referenciado). Sem essa cadeia fechada, project pages apodrecem em 2-3 meses e o hub vira documentação morta.
+
 **Paralelize as escritas**. Se você vai criar 10 arquivos novos, faça 10 chamadas Write em paralelo na mesma mensagem — são independentes.
 
 ### Passo 5 — Atualizar `index.md`
@@ -181,6 +183,11 @@ Para cada item, rode o check e colete issues:
    - Páginas `stable` que na verdade têm 2 linhas → rebaixar pra `stub` ou `draft`.
    - Páginas `stub` maduras há meses → promover.
 
+9. **Project pages desatualizadas**
+   - Para cada `wiki/projects/X`, compare o `updated:` do project com o `updated:` da source mais recente que o referencia.
+   - Se o project ficou pra trás, o hub apodreceu — sinalizar como candidato a refresh das seções "Decisões ativas", "Status atual" ou "Próximos passos".
+   - Ferramenta: `grep -l "projects/X" wiki/sources/*.md` pra listar sources que apontam pro project; comparar datas.
+
 ### Output
 
 Relatório em markdown:
@@ -208,6 +215,9 @@ Relatório em markdown:
 
 ## Frontmatter issues (N)
 - [[a]]: `categoria` ausente.
+
+## Project pages desatualizadas (N)
+- [[wiki/projects/X]] (updated: YYYY-MM-DD) — sources mais recentes: [[slug]] (updated: YYYY-MM-DD). Candidato a refresh de Decisões ativas / Status atual / Próximos passos.
 
 ## Sugestões de novas páginas/fontes
 - ...
@@ -266,6 +276,7 @@ Edite o arquivo criado com:
 Seções:
 - **Contexto inicial** — estado do repo/problema no começo.
 - **Decisões tomadas** — cada uma com alternativas descartadas e trade-off. Decisão sem alternativa é ruído.
+- **Regras de negócio tocadas** — se a sessão alterou/esclareceu/revelou regra de um projeto, liste no formato regra + antes/depois + link pra `[[wiki/projects/X]]`. Deixe vazio se não aplica. É o gatilho explícito pro ingest posterior atualizar o project page (ver §1 Passo 4).
 - **Arquivos modificados** — use `git diff --name-only` se disponível.
 - **Problemas resolvidos** — sintoma → root cause → fix. Não pule root cause.
 - **Padrões descobertos** — coisas que viraram "ah, isso aqui é reusável" — candidatos a virar concept/snippet no wiki.

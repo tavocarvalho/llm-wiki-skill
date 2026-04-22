@@ -188,6 +188,13 @@ ${TRANSCRIPT_LINE}
   - Alternativas: ...
   - Trade-off: ...
 
+## Regras de negócio tocadas
+
+<!-- Se esta sessão/reunião alterou, esclareceu ou revelou regra de negócio de um projeto,
+     listar aqui no formato: regra + antes/depois + link pra [[wiki/projects/X]] que deve
+     ser atualizado no mesmo ingest. Deixar vazio se não aplica.
+     É o gatilho que o ingest (§4.1.4 do CLAUDE.md) usa pra atualizar o project page. -->
+
 ## Arquivos modificados
 
 <!-- Lista com 1-linha de cada alteração importante. -->

@@ -33,6 +33,7 @@ Basta digitar `/wiki-dump` sem argumentos na maioria dos casos. Só passe argume
    - **`event_5w1h.how`** — abordagem (ex: "pair-dev com Claude Code, TDD, refactor guiado por testes").
    - **Contexto inicial** — estado do repo/problema no início da sessão.
    - **Decisões tomadas** — cada decisão com alternativas descartadas e trade-off.
+   - **Regras de negócio tocadas** — se a sessão alterou/esclareceu/revelou regra de um projeto, liste no formato regra + antes/depois + link pra `[[wiki/projects/X]]`. Deixe a seção vazia se não aplica. É o gatilho explícito pra que o ingest posterior atualize o project page.
    - **Arquivos modificados** — liste os que de fato foram tocados na sessão (use `git diff --name-only` se relevante).
    - **Problemas resolvidos** — sintoma → root cause → fix.
    - **Padrões descobertos** — candidatos a virar concept/snippet no wiki.

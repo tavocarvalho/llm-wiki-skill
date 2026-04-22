@@ -173,6 +173,17 @@ event_5w1h:
 - **Alternativas descartadas**: ...
 - **Trade-off**: ...
 
+## Regras de negócio tocadas
+
+<!-- Regra + antes/depois + link pra [[wiki/projects/X]] que deve ser atualizado no mesmo
+     ingest. Deixar vazio se a sessão não alterou/esclareceu regra de negócio. -->
+
+### Regra 1: {descrição curta}
+
+- **Antes**: ...
+- **Depois**: ...
+- **Project page a atualizar**: [[wiki/projects/X]]
+
 ## Arquivos modificados
 
 - `path/to/file.py` — o que mudou.

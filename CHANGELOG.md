@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.3.0] - 2026-04-22
+
+### Added
+- Seção **"Regras de negócio tocadas"** no template de digest (entre "Decisões tomadas" e "Arquivos modificados"). Presente em `scripts/wiki-dump`, `reference/templates.md` e listada em `SKILL.md` + `commands/wiki-dump.md`.
+- **Check novo no lint** (`reference/workflows.md` §3 item 9): project pages desatualizadas — comparar `updated:` do project com o da source mais recente que o referencia; sinalizar staleness.
+- **Orientação no workflow de ingest** (`reference/workflows.md` §1 Passo 4): se a fonte toca regras de negócio de `wiki/projects/X`, atualizar o project page **no mesmo ingest**, usando a seção "Regras de negócio tocadas" do digest como gatilho.
+
+### Rationale
+Pergunta levantada em 2026-04-22: qual a melhor fonte pra manter requisitos/regras de negócio atualizados no wiki? Diagnóstico: não tem single source — regras vazam por PRD/tickets/Slack/reunião/código. O padrão que funciona é tratar o project page como hub vivo alimentado por digests recorrentes. Sem cadeia fechada "digest declara regra tocada → ingest atualiza hub → lint detecta staleness", o project page apodrece em 2-3 meses. Essas 3 edições criam a cadeia. Schema canônico vive no `CLAUDE.md` do wiki (§4.1/§4.3/§4.5.1) — esta skill espelha.
+
 ## [0.2.0] - 2026-04-21
 
 ### Changed
